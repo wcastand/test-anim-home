@@ -9,11 +9,11 @@ let animated =
   false
 
 const determineIndex =
-  (a, offset = 0) =>
+  (a, offset = false) =>
     a.reduce((acc, x) => {
       return window.scrollY === 0
       ? acc
-      : x + offset >= window.scrollY
+      : x.top + (offset ? x.height / 2 : 0) >= window.scrollY
         ? acc
         : acc + 1
     }, 0)
@@ -33,14 +33,14 @@ fromEvent(window, 'keydown')
     e.preventDefault()
     const anchors = Array
       .from(document.querySelectorAll('section'))
-      .map(section => section.offsetTop)
+      .map(section => ({ top: section.offsetTop, height: section.getBoundingClientRect().height }))
     const index = determineIndex(anchors)
 
     switch(e.keyCode){
       case 40:
         if(index !== anchors.length - 1 && !animated){
           animated = true
-          goTo(window.scrollY, anchors[index + 1])
+          goTo(window.scrollY, anchors[index + 1].top)
           .addListener({
             next: y => window.scrollTo(0, y)
           , error: x => console.error(x)
@@ -51,7 +51,7 @@ fromEvent(window, 'keydown')
       case 38:
         if(index !== 0 && !animated){
           animated = true
-          goTo(window.scrollY, anchors[index - 1])
+          goTo(window.scrollY, anchors[index - 1].top)
           .addListener({
             next: y => window.scrollTo(0, y)
           , error: x => console.error(x)
@@ -75,11 +75,11 @@ fromEvent(window, 'wheel')
     e.preventDefault()
     const anchors = Array
       .from(document.querySelectorAll('section'))
-      .map(section => section.offsetTop)
-    const index = determineIndex(anchors, 150)
-    if(index !== 0 && !animated){
+      .map(section => ({ top: section.offsetTop, height: section.getBoundingClientRect().height }))
+    const index = determineIndex(anchors, true)
+    if(!animated){
       animated = true
-      goTo(window.scrollY, anchors[index])
+      goTo(window.scrollY, anchors[index].top)
       .addListener({
         next: y => window.scrollTo(0, y)
       , error: x => console.error(x)
